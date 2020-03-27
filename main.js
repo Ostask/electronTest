@@ -1,23 +1,8 @@
 const {app, BrowserWindow,ipcMain,dialog} = require('electron')
-
-const Store = require('electron-store');
-
-console.log(app.getPath('userData'))
- 
-const store = new Store();
- 
-store.set('unicorn', '🦄');
-console.log(store.get('unicorn'));
-//=> '🦄'
- 
-// Use dot-notation to access nested properties
-store.set('foo.bar', true);
-console.log(store.get('foo'));
-//=> {bar: true}
- 
-store.delete('unicorn');
-console.log(store.get('unicorn'));
-//=> undefined
+const DataStore = require('./musicDataStore.js')
+const myStore = new DataStore({
+  'name':'Music Data'
+})
 
 class AppWindow extends BrowserWindow {
   constructor(config,fileLocation){
@@ -42,6 +27,11 @@ class AppWindow extends BrowserWindow {
 app.on('ready',() => {
   const mainWindow = new AppWindow({},"./renderer/index.html")
 
+  mainWindow.webContents.on('did-finish-load',() => {
+    console.log('page did finish load')
+    mainWindow.send('getTracks',myStore.getTracks())
+  })
+
   ipcMain.on('add-music-window',() => {
     const addWindow = new AppWindow(
       {
@@ -61,5 +51,9 @@ app.on('ready',() => {
         event.sender.send('selected-file',files)
       }
     })
-  })  
+  }) 
+  ipcMain.on('add-tracks',(event,data) => {
+    const updatedTracks = myStore.addTracks(data).getTracks()
+    mainWindow.send('getTracks',updatedTracks)
+  }) 
 })
