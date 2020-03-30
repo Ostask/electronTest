@@ -44,7 +44,7 @@ app.on('ready',() => {
     dialog.showOpenDialog({
       properties:['openFile','multiSelections'],
       filters: [
-        {name: 'Music', extensions: ['mp3']},
+        {name: 'Music', extensions: ['mp3','m4a']},
       ]
     }).then((files) => {
       if(files){
@@ -56,4 +56,8 @@ app.on('ready',() => {
     const updatedTracks = myStore.addTracks(data).getTracks()
     mainWindow.send('getTracks',updatedTracks)
   }) 
+  ipcMain.on('delete-track',(event,id) => {
+    const updatedTracks = myStore.deleteTrack(id).getTracks()
+    mainWindow.send('getTracks',updatedTracks)
+  })
 })
